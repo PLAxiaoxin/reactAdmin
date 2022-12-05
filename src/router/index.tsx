@@ -1,39 +1,44 @@
-import React, { lazy } from 'react';
-import Home from '../views/Home';
+import { Navigate, useRoutes } from 'react-router-dom';
+import { RouteObject } from '@/router/interface';
+import Login from '@/views/Login';
 
-const Abot = lazy(() => import('../views/Abot'));
-const Page1 = lazy(() => import('../views/Page1'));
-const Page2 = lazy(() => import('../views/Page2'));
+// * 导入所有router
+const metaRouters: object = import.meta.globEager('./modules/*.tsx');
+console.log(metaRouters);
 
-const withLoadingComponent = (Comp: JSX.Element) => (
-  <React.Suspense fallback={<div>Loding...</div>}>{Comp}</React.Suspense>
-);
+// * 处理路由
+export const routerArray: RouteObject[] = [];
+Object.keys(metaRouters).forEach((item) => {
+  Object.keys(metaRouters[item]).forEach((key: any) => {
+    routerArray.push(...metaRouters[item][key]);
+  });
+});
 
-// 重定向组件
-import { Navigate } from 'react-router-dom';
-const routes = [
+export const rootRouter: RouteObject[] = [
   // 嵌套路由
   {
     path: '/',
-    element: <Navigate to="/page1" />,
+    element: <Navigate to="/login" />,
   },
   {
-    path: '/',
-    element: <Home />,
-    children: [
-      {
-        path: '/abot',
-        element: withLoadingComponent(<Abot />),
-      },
-      {
-        path: '/page1',
-        element: withLoadingComponent(<Page1 />),
-      },
-      {
-        path: '/page2',
-        element: withLoadingComponent(<Page2 />),
-      },
-    ],
+    path: '/login',
+    element: <Login />,
+    meta: {
+      requiresAuth: true,
+      title: '登陆页',
+      key: 'login',
+    },
+  },
+  ...routerArray,
+  {
+    path: '*',
+    element: <Navigate to="/404" />,
   },
 ];
-export default routes;
+
+// const Router = () => {
+//   const routes = useRoutes(rootRouter);
+//   return routes;
+// };
+
+export default rootRouter;
